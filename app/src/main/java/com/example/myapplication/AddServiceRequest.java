@@ -64,11 +64,11 @@ public class AddServiceRequest extends AppCompatActivity {
         serviceId = getIntent().getStringExtra("serviceId");
 
 
-        populateSpinnerFromFirestore(location, "Dropdown", "LocationDropdown", "Location");
-        populateSpinnerFromFirestore(center, "Dropdown", "CenterDropdown", "Center");
-        populateSpinnerFromFirestore(category, "Dropdown", "CategoryDropdown", "Category");
-        populateSpinnerFromFirestore(subCategory, "Dropdown", "SubCategoryDropdown", "SubCategory");
-        populateSpinnerFromFirestore(severity, "Dropdown", "SeverityDropdown", "Severity");
+        populateSpinnerFromFirebase(location, "Dropdown", "LocationDropdown", "Location");
+        populateSpinnerFromFirebase(center, "Dropdown", "CenterDropdown", "Center");
+        populateSpinnerFromFirebase(category, "Dropdown", "CategoryDropdown", "Category");
+        populateSpinnerFromFirebase(subCategory, "Dropdown", "SubCategoryDropdown", "SubCategory");
+        populateSpinnerFromFirebase(severity, "Dropdown", "SeverityDropdown", "Severity");
 
         if (serviceId != null) {
             populateFieldsForEditing();
@@ -87,26 +87,8 @@ public class AddServiceRequest extends AppCompatActivity {
             }
         });
 
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view1) {
-                clearSpinnerSelection(location);
-                clearSpinnerSelection(center);
-                clearSpinnerSelection(category);
-                clearSpinnerSelection(subCategory);
-                clearSpinnerSelection(severity);
-            }
-        });
 
     }
-
-
-
-
-    private void clearSpinnerSelection(Spinner spinner) {
-        spinner.setSelection(0); // Set the selection to the first item
-    }
-
 
 
 
@@ -231,35 +213,29 @@ public class AddServiceRequest extends AppCompatActivity {
     }
 
 
-    private void populateSpinnerFromFirestore(Spinner spinner, String collectionName, String fieldName, String defaultItem) {
-        store.collection(collectionName).get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<String> items = new ArrayList<>();
-                    for (DocumentSnapshot document : querySnapshot) {
-                        String item = document.getString(fieldName);
-                        items.add(item);
-                    }
+    private void populateSpinnerFromFirebase(Spinner spinner, String collectionPath, String documentId, String fieldName) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
 
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinner.setAdapter(adapter);
-
-                    int position = adapter.getPosition(defaultItem);
-
-                    if (position != -1) {
-                        spinner.setSelection(position);
-                    } else {
-                        Log.d(TAG, "Default Item for " + spinner.getTag() + " not found in adapter.");
-                        // If the default item is not found in the adapter, you can handle it as needed.
+        store.collection(collectionPath).document(documentId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> options = (List<String>) documentSnapshot.get(fieldName);
+                        if (options != null) {
+                            adapter.addAll(options);
+                            adapter.notifyDataSetChanged();
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Handle failure
+                    Toast.makeText(AddServiceRequest.this, "No Data Found", Toast.LENGTH_SHORT).show();
+
                 });
+
+
     }
 
-    }
-
-
+}
 
 
