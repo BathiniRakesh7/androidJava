@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class AddServiceRequest extends AppCompatActivity {
     public static final String TAG = "Tag";
@@ -86,6 +87,13 @@ public class AddServiceRequest extends AppCompatActivity {
                 }
             }
         });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
     }
@@ -93,14 +101,13 @@ public class AddServiceRequest extends AppCompatActivity {
 
 
     private void populateFieldsForEditing() {
-        String serviceId = getIntent().getStringExtra("serviceId");
         store.collection("ServiceRequest").document(serviceId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         initiatedBy.setText(documentSnapshot.getString("InitiatedBy"));
                         description.setText(documentSnapshot.getString("Description"));
                         setSpinnerSelection(location, documentSnapshot.getString("Location"));
-                        setSpinnerSelection(center, documentSnapshot.getString("center"));
+                        setSpinnerSelection(center, documentSnapshot.getString("Center"));
                         setSpinnerSelection(category, documentSnapshot.getString("Category"));
                         setSpinnerSelection(subCategory, documentSnapshot.getString("SubCategory"));
                         setSpinnerSelection(severity, documentSnapshot.getString("Severity"));
@@ -114,7 +121,7 @@ public class AddServiceRequest extends AppCompatActivity {
 
     private void setSpinnerSelection(Spinner spinner, String selectedItem) {
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
-        int position = adapter.getPosition(selectedItem);
+        int position = adapter.getPosition(selectedItem.trim());
         if (position != -1) {
             spinner.setSelection(position);
         }
@@ -133,7 +140,7 @@ public class AddServiceRequest extends AppCompatActivity {
                     serviceData.put("Description", description.getText().toString().trim());
                     serviceData.put("serviceId",  nextId.toString());
                     serviceData.put("Location", location.getSelectedItem());
-                    serviceData.put("center", center.getSelectedItem());
+                    serviceData.put("Center", center.getSelectedItem());
                     serviceData.put("Category", category.getSelectedItem());
                     serviceData.put("SubCategory", subCategory.getSelectedItem());
                     serviceData.put("Severity", severity.getSelectedItem());
@@ -143,9 +150,17 @@ public class AddServiceRequest extends AppCompatActivity {
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
-                                        Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
-                                        Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                        try {
+                                            Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
+                                            Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent( AddServiceRequest.this, DisplayRequestPage.class);
+                                            intent.putExtra("serviceId", String.valueOf(nextId));
+                                            startActivity(intent);
+                                        }catch (Exception e) {
+                                            Log.e(TAG, "Error while saving service request: " + e.getMessage());
+                                            e.printStackTrace();
+                                            Toast.makeText(AddServiceRequest.this, "An error occurred while saving data", Toast.LENGTH_SHORT).show();
+                                        }
 
 
                                         sequenceRef.update("NextId", nextId + 1).addOnCompleteListener(new OnCompleteListener<Void>() {
