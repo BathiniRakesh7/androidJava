@@ -114,11 +114,17 @@ public class AddServiceRequest extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         initiatedBy.setText(documentSnapshot.getString("InitiatedBy"));
+                        initiatedBy.setEnabled(false);
                         description.setText(documentSnapshot.getString("Description"));
+                        description.setEnabled(false);
                         setSpinnerSelection(location, documentSnapshot.getString("Location"));
+                        location.setEnabled(false);
                         setSpinnerSelection(center, documentSnapshot.getString("Center"));
+                        center.setEnabled(false);
                         setSpinnerSelection(category, documentSnapshot.getString("Category"));
+                        category.setEnabled(false);
                         setSpinnerSelection(subCategory, documentSnapshot.getString("SubCategory"));
+                        subCategory.setEnabled(false);
                         setSpinnerSelection(severity, documentSnapshot.getString("Severity"));
                     }
                 })
