@@ -32,11 +32,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void Edit(View view) {
-        String serviceId = "1250"; // Replace with the actual record ID you want to pass
-
-        Intent intent = new Intent(getApplicationContext(), AddServiceRequest.class);
-        intent.putExtra("serviceId", serviceId);
+    public void page(View view) {
+        Intent intent = new Intent(getApplicationContext(), ServiceRequestPage.class);
         startActivity(intent);
     }
 }

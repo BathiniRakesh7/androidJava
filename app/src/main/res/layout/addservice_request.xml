@@ -6,6 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/AddServiceToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        app:titleTextColor="@color/white"
+        android:textAlignment="center"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <Spinner
         android:id="@+id/Severity"
@@ -49,7 +61,6 @@
         android:layout_marginTop="20dp"
         android:tag="Center"
 
-
         app:layout_constraintEnd_toEndOf="@+id/Location"
         app:layout_constraintHorizontal_bias="0.489"
         app:layout_constraintStart_toStartOf="@+id/Location"
@@ -58,28 +69,16 @@
         tools:layout_editor_absoluteY="402dp" />
 
 
-    <TextView
-        android:id="@+id/hintLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select a Location"
-        android:textAppearance="@android:style/TextAppearance.Widget.TextView.SpinnerItem"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="@id/Location"
-        app:layout_constraintStart_toStartOf="@id/Location" />
-
     <Spinner
         android:id="@+id/Location"
         android:layout_width="364dp"
         android:layout_height="51dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="16dp"
         android:tag="Location"
-
-        app:layout_constraintEnd_toEndOf="@id/Title"
-        app:layout_constraintStart_toStartOf="@id/Title"
-        app:layout_constraintTop_toBottomOf="@id/Title" />
-
+        app:layout_constraintEnd_toEndOf="@+id/AddServiceToolbar"
+        app:layout_constraintHorizontal_bias="0.659"
+        app:layout_constraintStart_toStartOf="@+id/AddServiceToolbar"
+        app:layout_constraintTop_toBottomOf="@+id/AddServiceToolbar" />
 
     <EditText
         android:id="@+id/InitiatedBy"
@@ -106,17 +105,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/InitiatedBy"
         app:layout_constraintTop_toBottomOf="@+id/InitiatedBy" />
-
-    <TextView
-        android:id="@+id/Title"
-        android:layout_width="138dp"
-        android:layout_height="31dp"
-        android:layout_marginTop="56dp"
-        android:text="Add Service request "
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/Savebutton"

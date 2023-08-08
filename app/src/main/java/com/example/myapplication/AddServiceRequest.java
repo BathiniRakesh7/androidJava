@@ -1,19 +1,17 @@
 package com.example.myapplication;
 
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,11 +25,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class AddServiceRequest extends AppCompatActivity {
     public static final String TAG = "Tag";
@@ -43,16 +39,21 @@ public class AddServiceRequest extends AppCompatActivity {
     FirebaseFirestore store;
     ProgressBar progressBar3;
     String serviceId;
+    Toolbar addServiceRequestToolbar;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.addservice_request);
-        title = findViewById(R.id.Title);
+        addServiceRequestToolbar = findViewById(R.id.AddServiceToolbar);
+        setSupportActionBar(addServiceRequestToolbar);
+
+        getSupportActionBar().setTitle("Add Service Request");
+
+
         initiatedBy = findViewById(R.id.InitiatedBy);
         description = findViewById(R.id.Description);
-        hintLocation = findViewById(R.id.hintLocation);
         location = findViewById(R.id.Location);
         center = findViewById(R.id.Center);
         category = findViewById(R.id.Category);
@@ -81,7 +82,7 @@ public class AddServiceRequest extends AppCompatActivity {
                 progressBar3.setVisibility(View.VISIBLE);
 
                 if (serviceId == null) {
-                addServiceRequest();
+                    addServiceRequest();
                 } else {
                     updateServiceRequest();
                 }
@@ -99,7 +100,6 @@ public class AddServiceRequest extends AppCompatActivity {
     }
 
 
-
     private void populateFieldsForEditing() {
         store.collection("ServiceRequest").document(serviceId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -114,7 +114,9 @@ public class AddServiceRequest extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Handle failure
+
+                    Toast.makeText(AddServiceRequest.this, "Data not populated", Toast.LENGTH_SHORT).show();
+
                 });
     }
 
@@ -138,53 +140,53 @@ public class AddServiceRequest extends AppCompatActivity {
                     Map<String, Object> serviceData = new HashMap<>();
                     serviceData.put("InitiatedBy", initiatedBy.getText().toString().trim());
                     serviceData.put("Description", description.getText().toString().trim());
-                    serviceData.put("serviceId",  nextId.toString());
+                    serviceData.put("serviceId", nextId.toString());
                     serviceData.put("Location", location.getSelectedItem());
                     serviceData.put("Center", center.getSelectedItem());
                     serviceData.put("Category", category.getSelectedItem());
                     serviceData.put("SubCategory", subCategory.getSelectedItem());
                     serviceData.put("Severity", severity.getSelectedItem());
-                        store.collection("ServiceRequest")
-                                .document(String.valueOf(nextId))
-                                .set(serviceData)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        try {
-                                            Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
-                                            Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent( AddServiceRequest.this, DisplayRequestPage.class);
-                                            intent.putExtra("serviceId", String.valueOf(nextId));
-                                            startActivity(intent);
-                                        }catch (Exception e) {
-                                            Log.e(TAG, "Error while saving service request: " + e.getMessage());
-                                            e.printStackTrace();
-                                            Toast.makeText(AddServiceRequest.this, "An error occurred while saving data", Toast.LENGTH_SHORT).show();
-                                        }
+                    store.collection("ServiceRequest")
+                            .document(String.valueOf(nextId))
+                            .set(serviceData)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    try {
+                                        Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
+                                        Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(AddServiceRequest.this, ServiceRequestPage.class);
+                                        intent.putExtra("serviceId", String.valueOf(nextId));
+                                        startActivity(intent);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "Error while saving service request: " + e.getMessage());
+                                        e.printStackTrace();
+                                        Toast.makeText(AddServiceRequest.this, "An error occurred while saving data", Toast.LENGTH_SHORT).show();
+                                    }
 
 
-                                        sequenceRef.update("NextId", nextId + 1).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    Log.d(TAG, "Next ID updated successfully");
-                                                } else {
-                                                    Log.d(TAG, "Next ID update failed");
-                                                }
-
-                                                progressBar3.setVisibility(View.GONE);
+                                    sequenceRef.update("NextId", nextId + 1).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                Log.d(TAG, "Next ID updated successfully");
+                                            } else {
+                                                Log.d(TAG, "Next ID update failed");
                                             }
-                                        });
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error adding document", e);
-                                        Toast.makeText(AddServiceRequest.this, "Failed to save data", Toast.LENGTH_SHORT).show();
-                                        progressBar3.setVisibility(View.GONE);
-                                    }
-                                });
+
+                                            progressBar3.setVisibility(View.GONE);
+                                        }
+                                    });
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.w(TAG, "Error adding document", e);
+                                    Toast.makeText(AddServiceRequest.this, "Failed to save data", Toast.LENGTH_SHORT).show();
+                                    progressBar3.setVisibility(View.GONE);
+                                }
+                            });
                 } else {
                     Log.d(TAG, "Next ID is null or not found");
                     Toast.makeText(AddServiceRequest.this, "Next ID is null or not found", Toast.LENGTH_SHORT).show();

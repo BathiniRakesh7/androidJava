@@ -39,7 +39,7 @@
             android:label="Add Service Request">
         </activity>
         <activity
-            android:name=".DisplayRequestPage"
+            android:name=".ServiceRequestPage"
             android:label="Display page">
         </activity>
 
