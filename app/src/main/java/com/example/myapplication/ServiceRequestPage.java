@@ -30,6 +30,11 @@ public class ServiceRequestPage extends AppCompatActivity {
 
         getSupportActionBar().setTitle("Service Request Page");
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
         serviceRequestsLayout = findViewById(R.id.serviceRequestsLayout);
 
         store = FirebaseFirestore.getInstance();
@@ -83,6 +88,11 @@ public class ServiceRequestPage extends AppCompatActivity {
                 });
 
 
+    }
+
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
 

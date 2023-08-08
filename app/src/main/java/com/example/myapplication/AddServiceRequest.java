@@ -11,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.widget.Toolbar;
 
 import androidx.annotation.NonNull;
@@ -33,7 +34,6 @@ public class AddServiceRequest extends AppCompatActivity {
     public static final String TAG = "Tag";
 
     EditText initiatedBy, description;
-    TextView title, hintLocation;
     Spinner location, center, category, subCategory, severity;
     Button save, cancel;
     FirebaseFirestore store;
@@ -45,11 +45,15 @@ public class AddServiceRequest extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.addservice_request);
+        setContentView(R.layout.add_service_request);
         addServiceRequestToolbar = findViewById(R.id.AddServiceToolbar);
         setSupportActionBar(addServiceRequestToolbar);
 
         getSupportActionBar().setTitle("Add Service Request");
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
 
         initiatedBy = findViewById(R.id.InitiatedBy);
@@ -97,6 +101,11 @@ public class AddServiceRequest extends AppCompatActivity {
         });
 
 
+    }
+
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
 
