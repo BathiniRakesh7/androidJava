@@ -77,12 +77,28 @@ public class ServiceRequestPage extends AppCompatActivity {
                         initiatedByTextView.setText(makeTextBoldAndColored("Initiated By: ", initiatedBy, violetColor));
 
 
+                        Button deleteButton = serviceRequestCardView.findViewById(R.id.deleteButton);
+                        deleteButton.setOnClickListener(view1 -> {
+                            String serviceId = documentSnapshot.getId();
+                            store.collection("ServiceRequest").document(serviceId)
+                                    .delete()
+                                    .addOnSuccessListener(avoid -> {
+                                        serviceRequestsLayout.removeView(serviceRequestCardView);
+                                        Toast.makeText(ServiceRequestPage.this, "Service Request Deleted", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(ServiceRequestPage.this, "Failed to delete", Toast.LENGTH_SHORT).show();
+                                    });
+                        });
+
+
                         Button editButton = serviceRequestCardView.findViewById(R.id.editButton);
                         editButton.setOnClickListener(view -> {
                             String serviceId = documentSnapshot.getId();
                             Intent intent = new Intent(getApplicationContext(), AddServiceRequest.class);
                             intent.putExtra("serviceId", serviceId);
                             startActivity(intent);
+
                         });
 
                         serviceRequestsLayout.addView(serviceRequestCardView);

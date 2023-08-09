@@ -4,12 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
@@ -71,10 +71,26 @@ public class AddServiceRequest extends AppCompatActivity {
 
 
         populateSpinnerFromFirebase(location, "Dropdown", "LocationDropdown", "Location");
-        populateSpinnerFromFirebase(center, "Dropdown", "CenterDropdown", "Center");
         populateSpinnerFromFirebase(category, "Dropdown", "CategoryDropdown", "Category");
         populateSpinnerFromFirebase(subCategory, "Dropdown", "SubCategoryDropdown", "SubCategory");
         populateSpinnerFromFirebase(severity, "Dropdown", "SeverityDropdown", "Severity");
+
+        location.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedLocation = parent.getItemAtPosition(position).toString().trim();
+                    populateSpinnerFromFirebase(center, "Centers", "Location", selectedLocation);
+
+
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
 
         if (serviceId != null) {
             populateFieldsForEditing();
@@ -108,31 +124,29 @@ public class AddServiceRequest extends AppCompatActivity {
         return true;
     }
 
-
     private void populateFieldsForEditing() {
-        store.collection("ServiceRequest").document(serviceId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        initiatedBy.setText(documentSnapshot.getString("InitiatedBy"));
-                        initiatedBy.setEnabled(false);
-                        description.setText(documentSnapshot.getString("Description"));
-                        description.setEnabled(false);
-                        setSpinnerSelection(location, documentSnapshot.getString("Location"));
-                        location.setEnabled(false);
-                        setSpinnerSelection(center, documentSnapshot.getString("Center"));
-                        center.setEnabled(false);
-                        setSpinnerSelection(category, documentSnapshot.getString("Category"));
-                        category.setEnabled(false);
-                        setSpinnerSelection(subCategory, documentSnapshot.getString("SubCategory"));
-                        subCategory.setEnabled(false);
-                        setSpinnerSelection(severity, documentSnapshot.getString("Severity"));
-                    }
-                })
-                .addOnFailureListener(e -> {
+        store.collection("ServiceRequest").document(serviceId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                initiatedBy.setText(documentSnapshot.getString("InitiatedBy"));
+                initiatedBy.setEnabled(false);
+                description.setText(documentSnapshot.getString("Description"));
+                description.setEnabled(false);
+                setSpinnerSelection(location, documentSnapshot.getString("Location"));
+                location.setEnabled(false);
 
-                    Toast.makeText(AddServiceRequest.this, "Data not populated", Toast.LENGTH_SHORT).show();
+                populateSpinnerFromFirebase(center, "Centers", "Location", documentSnapshot.getString("Location"));
+                setSpinnerSelection1(center, documentSnapshot.getString("Center"));
+                setSpinnerSelection(category, documentSnapshot.getString("Category"));
+                category.setEnabled(false);
+                setSpinnerSelection(subCategory, documentSnapshot.getString("SubCategory"));
+                subCategory.setEnabled(false);
+                setSpinnerSelection(severity, documentSnapshot.getString("Severity"));
+            }
+        }).addOnFailureListener(e -> {
 
-                });
+            Toast.makeText(AddServiceRequest.this, "Data not populated", Toast.LENGTH_SHORT).show();
+
+        });
     }
 
 
@@ -143,6 +157,18 @@ public class AddServiceRequest extends AppCompatActivity {
             spinner.setSelection(position);
         }
     }
+    private void setSpinnerSelection1(Spinner spinner, String selectedItem) {
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(selectedItem)) {
+                spinner.setSelection(i);
+                break;
+            }
+        }
+    }
+
+
+
 
     private void addServiceRequest() {
         progressBar3.setVisibility(View.VISIBLE);
@@ -165,43 +191,42 @@ public class AddServiceRequest extends AppCompatActivity {
                             .document(String.valueOf(nextId))
                             .set(serviceData)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            try {
+                                Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
+                                Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(AddServiceRequest.this, ServiceRequestPage.class);
+                                intent.putExtra("serviceId", String.valueOf(nextId));
+                                startActivity(intent);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error while saving service request: " + e.getMessage());
+                                e.printStackTrace();
+                                Toast.makeText(AddServiceRequest.this, "An error occurred while saving data", Toast.LENGTH_SHORT).show();
+                            }
+
+
+                            sequenceRef.update("NextId", nextId + 1).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
-                                public void onSuccess(Void aVoid) {
-                                    try {
-                                        Log.d(TAG, "DocumentSnapshot added with ID: " + nextId);
-                                        Toast.makeText(AddServiceRequest.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(AddServiceRequest.this, ServiceRequestPage.class);
-                                        intent.putExtra("serviceId", String.valueOf(nextId));
-                                        startActivity(intent);
-                                    } catch (Exception e) {
-                                        Log.e(TAG, "Error while saving service request: " + e.getMessage());
-                                        e.printStackTrace();
-                                        Toast.makeText(AddServiceRequest.this, "An error occurred while saving data", Toast.LENGTH_SHORT).show();
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "Next ID updated successfully");
+                                    } else {
+                                        Log.d(TAG, "Next ID update failed");
                                     }
 
-
-                                    sequenceRef.update("NextId", nextId + 1).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                Log.d(TAG, "Next ID updated successfully");
-                                            } else {
-                                                Log.d(TAG, "Next ID update failed");
-                                            }
-
-                                            progressBar3.setVisibility(View.GONE);
-                                        }
-                                    });
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.w(TAG, "Error adding document", e);
-                                    Toast.makeText(AddServiceRequest.this, "Failed to save data", Toast.LENGTH_SHORT).show();
                                     progressBar3.setVisibility(View.GONE);
                                 }
                             });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w(TAG, "Error adding document", e);
+                            Toast.makeText(AddServiceRequest.this, "Failed to save data", Toast.LENGTH_SHORT).show();
+                            progressBar3.setVisibility(View.GONE);
+                        }
+                    });
                 } else {
                     Log.d(TAG, "Next ID is null or not found");
                     Toast.makeText(AddServiceRequest.this, "Next ID is null or not found", Toast.LENGTH_SHORT).show();
@@ -229,19 +254,15 @@ public class AddServiceRequest extends AppCompatActivity {
         updatedData.put("Category", category.getSelectedItem().toString());
         updatedData.put("SubCategory", subCategory.getSelectedItem().toString());
         updatedData.put("Severity", severity.getSelectedItem().toString());
-        String serviceId = getIntent().getStringExtra("serviceId");
 
-        store.collection("ServiceRequest").document(serviceId)
-                .set(updatedData, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    progressBar3.setVisibility(View.GONE);
-                    Toast.makeText(AddServiceRequest.this, "Service request updated successfully", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar3.setVisibility(View.GONE);
-                    Toast.makeText(AddServiceRequest.this, "Failed to update service request", Toast.LENGTH_SHORT).show();
-                });
+        store.collection("ServiceRequest").document(serviceId).set(updatedData, SetOptions.merge()).addOnSuccessListener(aVoid -> {
+            progressBar3.setVisibility(View.GONE);
+            Toast.makeText(AddServiceRequest.this, "Service request updated successfully", Toast.LENGTH_SHORT).show();
+            finish();
+        }).addOnFailureListener(e -> {
+            progressBar3.setVisibility(View.GONE);
+            Toast.makeText(AddServiceRequest.this, "Failed to update service request", Toast.LENGTH_SHORT).show();
+        });
     }
 
 
@@ -250,20 +271,18 @@ public class AddServiceRequest extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        store.collection(collectionPath).document(documentId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> options = (List<String>) documentSnapshot.get(fieldName);
-                        if (options != null) {
-                            adapter.addAll(options);
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(AddServiceRequest.this, "No Data Found", Toast.LENGTH_SHORT).show();
+        store.collection(collectionPath).document(documentId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> options = (List<String>) documentSnapshot.get(fieldName);
+                if (options != null) {
+                    adapter.addAll(options);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(AddServiceRequest.this, "No Data Found", Toast.LENGTH_SHORT).show();
 
-                });
+        });
 
 
     }
